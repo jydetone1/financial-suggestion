@@ -5,5 +5,6 @@ export const debounce = (fn: Function, delay: number) => {
     timeoutId = setTimeout(() => fn(...args), delay);
   };
 };
-
 export const suggestionWidth = 366;
+export const apiRequest =
+  'https://652f91320b8d8ddac0b2b62b.mockapi.io/autocomplete';

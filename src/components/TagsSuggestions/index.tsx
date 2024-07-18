@@ -1,69 +1,48 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { useTagsStore } from '../../useTagsStore';
 import InputField from '../InputField';
-import { AccountBalance } from '../../mock';
-import { debounce, suggestionWidth } from '../../utils';
+import { useQuery } from 'react-query';
+import { debounce, suggestionWidth, apiRequest } from '../../utils';
 import styles from './TagsSuggestions.module.scss';
 
 const TagsSuggestions = () => {
-  const [display, setDisplay] = useState<boolean>(false);
-  const [text, setText] = useState<string>('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
-  const inputWrapperRef = useRef<HTMLDivElement>(null);
+  const { tags, addTag, deleteTag, text, setText, display, setDisplay } =
+    useTagsStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (text.length > 0) {
-      setSuggestedTags(
-        AccountBalance.filter(
-          (suggest) =>
-            suggest.toLowerCase().includes(text.toLowerCase()) &&
-            !tags.includes(suggest.toLowerCase())
-        )
-      );
-      setDisplay(true);
-      return;
+  const { data: suggestedTags = [], refetch } = useQuery(
+    'autocomplete',
+    async () => {
+      const response = await fetch(apiRequest);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      return data;
     }
-    setDisplay(false);
-  }, [text, tags]);
+  );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (text && !tags.includes(text.toLowerCase())) {
-        setTags((prevTags) => [...prevTags, text]);
+        addTag(text);
         setText('');
       }
     }
   };
-
-  const onAddTags = useCallback(
-    (tag: string) => {
-      if (!tags.includes(tag.toLowerCase())) {
-        setTags((prevTags) => [...prevTags, tag]);
+  const onClickOutside = useCallback(
+    (e: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node)
+      ) {
+        setDisplay(false);
       }
-      setText('');
-      setDisplay(false);
-      inputRef.current?.focus();
     },
-    [tags]
+    [setDisplay]
   );
-
-  const onDeleteTags = useCallback((index: number) => {
-    setTags((prevTags) => prevTags.filter((_, i) => i !== index));
-  }, []);
-
-  const onClickOutside = useCallback((e: MouseEvent) => {
-    if (
-      inputWrapperRef.current &&
-      !inputWrapperRef.current.contains(e.target as Node) &&
-      suggestionsRef.current &&
-      !suggestionsRef.current.contains(e.target as Node)
-    ) {
-      setDisplay(false);
-    }
-  }, []);
 
   useEffect(() => {
     document.addEventListener('mousedown', onClickOutside);
@@ -72,11 +51,13 @@ const TagsSuggestions = () => {
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
+    setDisplay(true);
+    refetch();
   };
 
   const updateSuggestionPosition = useCallback(() => {
-    if (inputWrapperRef.current && suggestionsRef.current) {
-      const inputRect = inputWrapperRef.current.getBoundingClientRect();
+    if (inputRef.current && suggestionsRef.current) {
+      const inputRect = inputRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const dropdownWidth = suggestionWidth;
       const spaceOnRight = viewportWidth - inputRect.left;
@@ -105,6 +86,13 @@ const TagsSuggestions = () => {
     }
   }, [display, updateSuggestionPosition]);
 
+  const onAddTagFromSuggestion = (tag: string) => {
+    addTag(tag);
+    setText('');
+    setDisplay(false);
+    inputRef.current?.focus();
+  };
+
   return (
     <div className={styles.tagContent}>
       {tags.map((tag, index) => (
@@ -112,13 +100,13 @@ const TagsSuggestions = () => {
           {tag}
           <div
             className={styles.tagContentWrapperRemoveTag}
-            onClick={() => onDeleteTags(index)}
+            onClick={() => deleteTag(index)}
           >
-            [X]
+            x
           </div>
         </div>
       ))}
-      <div ref={inputWrapperRef} className={styles.tagContentInputWrapper}>
+      <div className={styles.tagContentInputWrapper}>
         <InputField
           ref={inputRef}
           onKeyDown={onKeyDown}
@@ -135,13 +123,13 @@ const TagsSuggestions = () => {
           className={styles.tagContentSuggestionWrapper}
         >
           <div className={styles.tagContentSuggestionWrapperItems}>
-            {suggestedTags.map((tag, index) => (
+            {suggestedTags.map((tag: { category: string }, index: number) => (
               <div
-                onClick={() => onAddTags(tag)}
+                onClick={() => onAddTagFromSuggestion(tag.category)}
                 key={index}
                 className={styles.tagSuggestionsText}
               >
-                {tag}
+                {tag.category}
               </div>
             ))}
           </div>

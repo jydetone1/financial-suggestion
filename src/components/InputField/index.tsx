@@ -1,12 +1,17 @@
-import React, { forwardRef, ChangeEventHandler } from 'react';
+import React, {
+  forwardRef,
+  ChangeEventHandler,
+  FocusEventHandler,
+} from 'react';
 
 export type InputFieldProps = {
-  name: HTMLInputElement['name'];
+  name?: HTMLInputElement['name'];
   value: HTMLInputElement['value'];
   type?: HTMLInputElement['type'];
   onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
-  className: HTMLInputElement['className'];
-  onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
+  className?: HTMLInputElement['className'];
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+  onBlur?: FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>;
 };
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
@@ -18,6 +23,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
       onChange,
       className,
       onKeyDown,
+      onBlur,
       ...props
     },
     ref
@@ -33,6 +39,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         onChange={onChange}
         className={className}
         onKeyDown={onKeyDown}
+        onBlur={onBlur}
         ref={ref}
       />
     );

@@ -3,13 +3,17 @@ import ReactDOM from 'react-dom/client';
 import './index.module.scss';
 import AutocompleteInput from './AutocompleteInput';
 import reportWebVitals from './reportWebVitals';
+import { QueryClient, QueryClientProvider } from 'react-query';
+const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
   <React.StrictMode>
-    <AutocompleteInput />
+    <QueryClientProvider client={queryClient}>
+      <AutocompleteInput />
+    </QueryClientProvider>
   </React.StrictMode>
 );
 
