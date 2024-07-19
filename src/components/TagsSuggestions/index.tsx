@@ -41,9 +41,12 @@ const TagsSuggestions = () => {
       if (editingIndex !== null) {
         updateTag(editingIndex, editText);
         onClickEdit(null);
-      } else if (text && !tags.includes(text.toLowerCase())) {
+        return;
+      }
+      if (text && !tags.includes(text.toLowerCase())) {
         addTag(text);
         setText('');
+        return;
       }
     }
   };
