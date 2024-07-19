@@ -21,6 +21,17 @@
     margin: 1px 0;
     color: rgb(0 17 51);
     position: relative;
+
+    .tagContentWrapperEditTag {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      .tagContentInputWrapperEditInput {
+        width: 100px;
+        border: 1px solid lightgrey;
+        outline: none;
+      }
+    }
   }
 
   .tagContentInputWrapper {
@@ -46,7 +57,6 @@
     margin-top: 1px;
     color: black;
     cursor: pointer;
-    padding-left: 12px;
   }
 
   .tagContentSuggestionWrapper {

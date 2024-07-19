@@ -6,8 +6,20 @@ import { debounce, suggestionWidth, apiRequest } from '../../utils';
 import styles from './TagsSuggestions.module.scss';
 
 const TagsSuggestions = () => {
-  const { tags, addTag, deleteTag, text, setText, display, setDisplay } =
-    useTagsStore();
+  const {
+    tags,
+    addTag,
+    deleteTag,
+    text,
+    setText,
+    display,
+    setDisplay,
+    onClickEdit,
+    updateTag,
+    setEditText,
+    editText,
+    editingIndex,
+  } = useTagsStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -26,12 +38,16 @@ const TagsSuggestions = () => {
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (text && !tags.includes(text.toLowerCase())) {
+      if (editingIndex !== null) {
+        updateTag(editingIndex, editText);
+        onClickEdit(null);
+      } else if (text && !tags.includes(text.toLowerCase())) {
         addTag(text);
         setText('');
       }
     }
   };
+
   const onClickOutside = useCallback(
     (e: MouseEvent) => {
       if (
@@ -53,6 +69,10 @@ const TagsSuggestions = () => {
     setText(e.target.value);
     setDisplay(true);
     refetch();
+  };
+
+  const onChangeEdit = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditText(e.target.value);
   };
 
   const updateSuggestionPosition = useCallback(() => {
@@ -98,11 +118,25 @@ const TagsSuggestions = () => {
       {tags.map((tag, index) => (
         <div key={index} className={styles.tagContentWrapper}>
           {tag}
-          <div
-            className={styles.tagContentWrapperRemoveTag}
-            onClick={() => deleteTag(index)}
-          >
-            x
+          <div className={styles.tagContentWrapperEditTag}>
+            {editingIndex === index ? (
+              <InputField
+                value={editText}
+                name='tags'
+                onChange={onChangeEdit}
+                onKeyDown={onKeyDown}
+                ref={inputRef}
+                className={styles.tagContentInputWrapperEditInput}
+              />
+            ) : (
+              <div onClick={() => onClickEdit(index)}> [x] </div>
+            )}
+            <div
+              className={styles.tagContentWrapperRemoveTag}
+              onClick={() => deleteTag(index)}
+            >
+              x
+            </div>
           </div>
         </div>
       ))}
