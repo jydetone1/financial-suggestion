@@ -24,8 +24,10 @@ export const useTagsStore = create<TagsStore>((set, get) => ({
       updatedTags[index] = newTag;
       return { tags: updatedTags };
     }),
-  deleteTag: (index) =>
-    set((state) => ({ tags: state.tags.filter((_, i) => i !== index) })),
+  deleteTag: (index) => {
+    set((state) => ({ tags: state.tags.filter((_, i) => i !== index) }));
+    set({ editingIndex: null });
+  },
   text: '',
   editText: '',
   setText: (text) => set({ text }),
